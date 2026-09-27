@@ -1,0 +1,410 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "provenance": [],
+      "authorship_tag": "ABX9TyM3Q83U+la6ulUbjsGE/YAg"
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    },
+    "language_info": {
+      "name": "python"
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "source": [
+        "\n",
+        "# Chapter 10 : Memory Management (Long Term)\n",
+        "\n"
+      ],
+      "metadata": {
+        "id": "Q5AJTKc7D6jY"
+      }
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "                    User / Transaction\n",
+        "                           │\n",
+        "                           ▼\n",
+        "                      AI Agent\n",
+        "                           │\n",
+        "              ┌────────────┼────────────┐\n",
+        "              ▼            ▼            ▼\n",
+        "          Short-term   Long-term    Knowledge\n",
+        "            State        Memory        Base\n",
+        "              │            │            │\n",
+        "              └────────────┼────────────┘\n",
+        "                           ▼\n",
+        "                    Context Builder\n",
+        "                           │\n",
+        "                           ▼\n",
+        "                         LLM"
+      ],
+      "metadata": {
+        "id": "U8Ycy4WMfYuX"
+      }
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "| Type                  | Simple definition                                                       | Example                                                                          |\n",
+        "| --------------------- | ----------------------------------------------------------------------- | -------------------------------------------------------------------------------- |\n",
+        "| **Context Memory**    | Information available to the AI **right now** for the current response. | User says, “My name is Vimal.” → AI can use “Vimal” in the current conversation. |\n",
+        "| **Short-Term Memory** | Information the AI keeps **during the current task/session**.           | Researcher finds data → Analyst uses that data later in the same workflow.       |\n",
+        "| **Long-Term Memory**  | Information **stored for future conversations or tasks**.               | User says, “I prefer Python.” → System stores this preference and uses it later. |\n",
+        "| **Knowledge Memory**  | External information the AI can **retrieve when needed**.               | AI retrieves information about AML rules from a company policy document.         |\n"
+      ],
+      "metadata": {
+        "id": "wKRaKenAfnO6"
+      }
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "Types of Long-Term Memory\n",
+        "\n",
+        "1. Semantic Memory\n",
+        "Definition: Stores facts and information that the AI can remember for future conversations.\n",
+        "Example:\n",
+        "\n",
+        "\"My name is Vimal and I work at HSBC.\"\n",
+        "\n",
+        "2. Episodic Memory\n",
+        "Definition: Stores past events or experiences from previous interactions.\n",
+        "Example:\n",
+        "\n",
+        "\"Yesterday, Vimal asked me to explain LangChain memory.\"\n",
+        "\n",
+        "3. Procedural Memory\n",
+        "Definition: Stores instructions or knowledge about how to perform a task.\n",
+        "Example:\n",
+        "\n",
+        "\"When booking a flight, first ask for the destination, then the travel date.\""
+      ],
+      "metadata": {
+        "id": "_tVd3X_UokXG"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from dotenv import load_dotenv\n",
+        "import os\n",
+        "\n",
+        "load_dotenv()\n",
+        "\n",
+        "\n",
+        "os.environ[\"GROQ_API_KEY\"] = \"YOUR API KEY\"\n"
+      ],
+      "metadata": {
+        "id": "cGOqwlJyIYKj"
+      },
+      "execution_count": 157,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Setting up environment variable\n",
+        "\n",
+        "def setup_environment():\n",
+        "  \"\"\" Loads environment variables and check for the required API key\"\"\"\n",
+        "\n",
+        "  load_dotenv()\n",
+        "  if not os.getenv(\"GROQ_API_KEY\"):\n",
+        "    raise ValueError(\"GROQ_API_KEY is not set\")\n"
+      ],
+      "metadata": {
+        "id": "QiZsTRnBGVRS"
+      },
+      "execution_count": 158,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "setup_environment()"
+      ],
+      "metadata": {
+        "id": "npDHP5L4GVTk"
+      },
+      "execution_count": 159,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Initallizing chat model"
+      ],
+      "metadata": {
+        "id": "DPcxVWt7knzT"
+      },
+      "execution_count": 160,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "#!pip install langchain-openai\n",
+        "from langchain_core.tools import tool\n",
+        "from langchain_core.tools import tool as langchain_tool\n",
+        "from langchain_core.prompts import ChatPromptTemplate\n",
+        "from langchain.agents import create_agent\n",
+        "from langchain_openai import ChatOpenAI\n",
+        "import asyncio\n",
+        "import nest_asyncio"
+      ],
+      "metadata": {
+        "id": "UPfGoXT6KEJ4"
+      },
+      "execution_count": 161,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "execution_count": 162,
+      "metadata": {
+        "id": "YhF3I0onTPSQ"
+      },
+      "outputs": [],
+      "source": [
+        "from langchain_openai import ChatOpenAI\n",
+        "import os\n",
+        "\n",
+        "llm = ChatOpenAI(\n",
+        "    model=\"openai/gpt-oss-20b\",\n",
+        "    base_url=\"https://api.groq.com/openai/v1\",\n",
+        "    api_key=os.environ[\"GROQ_API_KEY\"],\n",
+        "\n",
+        ")"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "model = \"openai/gpt-oss-20b\""
+      ],
+      "metadata": {
+        "id": "X38-E5PVTiIX"
+      },
+      "execution_count": 163,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from langchain_core.chat_history import InMemoryChatMessageHistory"
+      ],
+      "metadata": {
+        "id": "WHLNlWl6HscY"
+      },
+      "execution_count": 164,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "# Manual Memory Management\n",
+        "Manual memory management means you explicitly control what information is stored,\n",
+        "retrieved, updated, and deleted from an AI agent's memory."
+      ],
+      "metadata": {
+        "id": "nt8hyqqahSLt"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Example"
+      ],
+      "metadata": {
+        "id": "h-GxgJLWhUw_"
+      },
+      "execution_count": 127,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from langgraph.store.memory import InMemoryStore"
+      ],
+      "metadata": {
+        "id": "B5WKeo-okqX0"
+      },
+      "execution_count": 165,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "def embed(texts: list[str]) -> list[list[float]]:\n",
+        "    return [[1.0, 2.0] for _ in texts]"
+      ],
+      "metadata": {
+        "id": "t3Ics4DZnZtA"
+      },
+      "execution_count": 169,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "store = InMemoryStore(index = {\"embed\":embed, \"dims\":2})"
+      ],
+      "metadata": {
+        "id": "pFFQJrQjDJd6"
+      },
+      "execution_count": 172,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "store.put(\n",
+        "    (\"user_memory\",),\n",
+        "    \"a-memory\",\n",
+        "    {\n",
+        "        \"rules\": [\n",
+        "            \"User likes short, direct language\",\n",
+        "            \"User only speaks English & Python\"\n",
+        "        ],\n",
+        "        \"my_key\": \"my_value\"\n",
+        "    }\n",
+        ")"
+      ],
+      "metadata": {
+        "id": "RXDygmTsnZvl"
+      },
+      "execution_count": 174,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "item = store.get((\"user_memory\",),\"a-memory\")\n",
+        "\n",
+        "print(item)"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "cCVBELWNnZyX",
+        "outputId": "8ef9ab73-2744-4165-d870-dd0711675306"
+      },
+      "execution_count": 181,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Item(namespace=['user_memory'], key='a-memory', value={'rules': ['User likes short, direct language', 'User only speaks English & Python'], 'my_key': 'my_value'}, created_at='2026-09-27T13:28:31.482220+00:00', updated_at='2026-09-27T13:28:31.482223+00:00')\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "items = store.search(\n",
+        "    (\"user_memory\",),\n",
+        "    filter={\"my_key\": \"my_value\"},\n",
+        "    query=\"language preferences \"\n",
+        ")\n",
+        "\n",
+        "print(items)"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "laxTMbVjDkXz",
+        "outputId": "3271e7f2-773e-41df-b93e-f5441e70cda8"
+      },
+      "execution_count": 183,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "[Item(namespace=['user_memory'], key='a-memory', value={'rules': ['User likes short, direct language', 'User only speaks English & Python'], 'my_key': 'my_value'}, created_at='2026-09-27T13:28:31.482220+00:00', updated_at='2026-09-27T13:28:31.482223+00:00', score=0.9999999999999998)]\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Using Real example"
+      ],
+      "metadata": {
+        "id": "HdugHSErENKw"
+      },
+      "execution_count": 184,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "store.put(\n",
+        "    (\"user_memory\",),\n",
+        "    \"preferences\",\n",
+        "    {\n",
+        "        \"communication\": \"short answers\",\n",
+        "        \"programming\": \"Python\",\n",
+        "        \"food\": \"vegetarian\",\n",
+        "        \"location\": \"Bangalore\"\n",
+        "    }\n",
+        ")"
+      ],
+      "metadata": {
+        "id": "Cw655GpUFOFF"
+      },
+      "execution_count": 190,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "items = store.search(\n",
+        "    (\"user_memory\",),\n",
+        "    query=\"food preferences\"\n",
+        ")\n",
+        "\n",
+        "print(items)"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "fsWEE4drFUUQ",
+        "outputId": "1dc8b4e9-8453-4dcb-c455-b88a0e0526c8"
+      },
+      "execution_count": 191,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "[Item(namespace=['user_memory'], key='a-memory', value={'rules': ['User likes short, direct language', 'User only speaks English & Python'], 'my_key': 'my_value'}, created_at='2026-09-27T13:28:31.482220+00:00', updated_at='2026-09-27T13:28:31.482223+00:00', score=0.9999999999999998), Item(namespace=['user_memory'], key='preferences', value={'communication': 'short answers', 'programming': 'Python', 'food': 'vegetarian', 'location': 'Bangalore'}, created_at='2026-09-27T13:41:36.095096+00:00', updated_at='2026-09-27T13:41:36.095099+00:00', score=0.9999999999999998)]\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [],
+      "metadata": {
+        "id": "Gc0M0fl2FcmG"
+      },
+      "execution_count": 191,
+      "outputs": []
+    }
+  ]
+}
