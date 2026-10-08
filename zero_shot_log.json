@@ -1,0 +1,33 @@
+{
+  "timestamp": "2026-10-08T09:15:30.549635",
+  "event": "ZERO_SHOT_CLASSIFICATION",
+  "request": {
+    "text_length": 42,
+    "categories": [
+      "Finance",
+      "Technology",
+      "Sports",
+      "Politics"
+    ]
+  },
+  "model": {
+    "name": "openai/gpt-oss-20b",
+    "provider": null
+  },
+  "response": {
+    "id": "chatcmpl-525a4288-b7ce-4103-8d7d-f6b74faea62f",
+    "finish_reason": "stop",
+    "category": "Finance"
+  },
+  "tokens": {
+    "input": 149,
+    "output": 36,
+    "reasoning": 26,
+    "total": 185
+  },
+  "performance": {
+    "latency_seconds": 1.182
+  },
+  "status": "SUCCESS",
+  "error": null
+}
