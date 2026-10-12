@@ -1,0 +1,9 @@
+{
+  "model": "openai/gpt-oss-20b",
+  "base_url": "https://api.groq.com/openai/v1",
+  "temperature": 5,
+  "max_tokens": 500,
+  "prompt_version": "sentiment_v1.1",
+  "timeout": 30,
+  "max_retries": 2
+}
