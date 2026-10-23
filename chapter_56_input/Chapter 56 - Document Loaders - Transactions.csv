@@ -1,0 +1,4 @@
+Transaction ID,Date,Originator country,Beneficiary country,Amount (USD),Currency
+TX-7001,12 Oct 2026,United States,United Arab Emirates,250000,USD
+TX-7002,13 Oct 2026,United Arab Emirates,Hong Kong,180000,USD
+TX-7003,14 Oct 2026,United States,Hong Kong,95000,USD
