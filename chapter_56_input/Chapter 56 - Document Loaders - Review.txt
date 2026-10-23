@@ -1,0 +1,18 @@
+Cross-Border Transaction Review
+
+Purpose: This fictional example demonstrates how the same information can be represented in different document formats.
+Case ID: CBR-2026-0142
+Customer type: Corporate trading company
+Review period: 12–14 October 2026
+Transactions reviewed: 3
+Total value: USD 525,000
+Originator countries: United States and United Arab Emirates
+Beneficiary countries: United Arab Emirates and Hong Kong
+Review note: The transfers require assessment against the customer profile, stated business purpose, counterparties, and supporting documentation.
+Conclusion: Transaction value or country exposure alone does not prove wrongdoing. An analyst should document both supporting and contradictory evidence before deciding an outcome.
+
+Transaction table:
+Transaction ID | Date | Originator country | Beneficiary country | Amount (USD) | Currency
+TX-7001 | 12 Oct 2026 | United States | United Arab Emirates | 250000 | USD
+TX-7002 | 13 Oct 2026 | United Arab Emirates | Hong Kong | 180000 | USD
+TX-7003 | 14 Oct 2026 | United States | Hong Kong | 95000 | USD
